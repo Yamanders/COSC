@@ -341,10 +341,11 @@ int main(){
   
   cout<<"Popping all of stackC: ";
   StackDataType item;
-  while (stackC.pop(item)) { // test bool pop(StackElementType &)
-    
-    cout<<item<<"  ";
-  }
+  for (int i = 0; i<10; i++){
+  	(stackC.pop(item));  // test bool pop(StackElementType &)
+	  
+    //cout<<item<<"  ";
+  };
   cout<<endl;
   
   Stack stackD=stackC; // expect stackC, stackD to be empty
