@@ -151,6 +151,10 @@ class Stack {
                 this->data=data;
                 this->next=nullptr;
             };
+			Element(DataType newData, Element* newNext){
+				data = newData;
+				next = newNext;
+			}
     };
   public:
     typedef Element *ElementPointer;
@@ -183,13 +187,18 @@ Stack::Stack(StackDataType value){
 
 Stack::Stack(const Stack & origStack){ // copy constructor.
     //cerr<<"copyconstruct\n"<<myTop;
-    myTop = origStack.myTop;
-    Element *runner = myTop;
-    while(runner->next!=nullptr){
-        if(runner==origStack.myTop);
-        if(runner->next == nullptr){
-        }
-        else runner=runner->next;
+    if (origStack.myTop==nullptr){
+        myTop=nullptr;
+    }
+    else{
+        myTop = new Element(origStack.myTop->data, origStack.myTop->next); //make new element using origStack header data and next;
+        Element *runner = myTop;    //start runner at the top
+        Element *origRunner = origStack.myTop;
+        while(runner->next!=nullptr){   //while we are not at the bottom of stack
+            origRunner=origRunner->next;    
+            runner->next = new Element(origRunner->data, origRunner->next);
+            runner=runner->next;
+        };
     };
 }
 
@@ -209,22 +218,21 @@ StackDataType Stack::pop(){
   };
 
 bool Stack::pop(StackDataType &item){
+    //display(cout);
     bool popped = false;
-    cerr<<"pop start\n";
     if( is_empty() ) {
-        cerr<<"is_empty; exit pop";
         popped=false;
     }
     else{
-        cerr<"is not empty; pop and store";
         Element *runner = myTop;
         item=myTop->data;
-        if(myTop->next!=nullptr){
+        if(myTop!=nullptr){
             myTop = myTop->next;
             delete runner;
             popped=true;
         }
     }
+    return popped;
 }
  // if empty return false; else copy top element on stack into item, remove top element, return true
 
@@ -235,11 +243,15 @@ const Stack & Stack::operator=(const Stack & rightHandSide){
     while(myTop!=nullptr){  //Deallocate all of the data BEFORE we 
         //cerr<<"myTopp: "<<myTop->data<<" !=null, so pop\n";
         pop();
+        //display(cout);
     };
     
-    Element *runner = rightHandSide.myTop;  
-    while(runner!=nullptr){
-        push(runner->data);
+    Element *right_runner = rightHandSide.myTop; 
+    Element *runner = new Element(right_runner->data, right_runner->next);
+    myTop = runner;
+    while(runner->next!=nullptr){
+        right_runner=right_runner->next;        
+        runner->next = new Element(right_runner->data, right_runner->next);
         runner=runner->next;
     }
     return *this;
@@ -278,7 +290,8 @@ void Stack::display(ostream & out) const{
     Element *runner = myTop;
     int count = 1;
     while(runner){
-        out << "Stack Element " << count<<" "<<runner->data<<" ";
+        //out << "Stack Element " << count<<" "<<
+        out <<runner->data<<" ";
         count++;
         if(runner->next == nullptr) break;
         else{
@@ -319,37 +332,42 @@ int main(){
     */
     Stack stackA;
     Stack stackB;
-    stackA.push('C'); stackA.push('O'); stackA.push('S'); stackA.push('C');
+    stackA.push('A'); stackA.push('B'); stackA.push('C'); stackA.push('D');
     cout<<"stackA "; stackA.display(cout);
     cout<<"\n";
-    stackB.push('C'); stackB.push('B'); stackB.push('F'); stackB.push('G');
+    stackB.push('E'); stackB.push('F'); stackB.push('G'); stackB.push('H');
     stackB.display(cout);
     stackB=stackA; // make a complete copy
-    cout<<"Copied stackB from stackA: " << stackB <<endl;
+    cout<<"\nCopied stackB from stackA: " << stackB << endl;
     Stack stackC=stackB; 
     cout<<"Stackc "<<stackC<<"\n";
     // construct a new stack, initialize with previous stack
- stackC.push('_'); stackC.push('Z'); stackC.push('Y'); stackC.push('X');
-  cout<<"stackC after pushing: " << stackC <<endl;
- 
-  cout<<"Popping all of stackB: ";
-  while (!stackB.is_empty()) { // test pop()
-    stackB.pop();
-    cout<<"stackB after pop \n "<<stackB<<"\n ";
-  }
-  cout<<endl;
-  
-  cout<<"Popping all of stackC: ";
-  StackDataType item;
-  for (int i = 0; i<10; i++){
-  	(stackC.pop(item));  // test bool pop(StackElementType &)
-	  
-    //cout<<item<<"  ";
+    stackC.push('_'); stackC.push('Z'); stackC.push('Y'); stackC.push('X');
+    cout<<"stackC after pushing: \n" << stackC <<endl;
+    cout<<"Popping all of stackB: ";
+    while (!stackB.is_empty()) { // test pop()
+        stackB.pop();
+        cout<<"stackB after pop \n "<<stackB<<"\n ";
+    }
+    //cout<<"stackB after while \n "<<stackB<<"\n ";
+    //cout<<"stackC after pushing: \n" << stackC <<endl;
+    //cout<<"\n";
+    //cout<<"Stackc "<<stackC<<"\n";
+    
+    cout<<"Popping all of stackC: \n";
+    StackDataType item;
+    //for (int i = 0; i<10; i++){
+    //while(  ! (stackC.is_empty() ) ){
+    //    (stackC.pop(item));  // test bool pop(StackElementType &)
+    while(stackC.pop(item)){
+        //cout<<"popped item "<<item<<"\n";
+        //cout<<"is_empty "<<stackC.is_empty();
   };
   cout<<endl;
   
   Stack stackD=stackC; // expect stackC, stackD to be empty
-  stackD.push(add); stackD.push(1); stackD.push(10); evaluate(stackD); // 1+10
+  stackD.push(add); stackD.push(1); stackD.push(10); 
+    cout<<"StackD "<<stackD; /*evaluate(stackD); // 1+10
   cout<<"stackD: "<< stackD << " evaluates to: " << stackD.pop() << endl; // expect 11
   
   stackD.push(subtract); stackD.push(44); stackD.push(22); evaluate(stackD); // 44-22
