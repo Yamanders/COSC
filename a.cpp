@@ -15,7 +15,7 @@ class List {
 	class Element {
  		public:
         DataType data;
- 		Element *next = nullptr;;
+ 		Element *next = nullptr;
 			Element(){
 			}
 			Element(DataType newData, Element* newNext){
@@ -42,10 +42,10 @@ class List {
         const List & operator=(const List & rightHandSide);
         void remove(int position);
         void display(ostream & out ) const;
-        void end_of_list();
+        //void end_of_list();
 };
 
-void List::end_of_list(){
+/*void List::end_of_list(){
 	Element* runner = head;
 	Element* lastNext = runner;
 	while(runner!=nullptr){
@@ -54,15 +54,7 @@ void List::end_of_list(){
 	}
 	cout<<"End of list: "<<(lastNext->next)<<" !\n";
 }
-
-
-
-
-
-
-
-
-
+*/
 
 
 List::List(){
@@ -83,16 +75,6 @@ List::~List(){
     }
 }
 
-/*
-Stack::~Stack(){
-    ElementPointer currPtr = myTop, nextPtr;
-    while(currPtr!=0){
-        nextPtr = currPtr->next;
-        delete currPtr;
-        currPtr = nextPtr;
-    }
-}
-*/
 ostream & operator<<(ostream & out, const List &alist){
     alist.display(out);
     return out;
@@ -100,17 +82,19 @@ ostream & operator<<(ostream & out, const List &alist){
 
 void List::display(ostream & out) const{
     Element *runner = head;
+    out<<"<top> ";
     int count = 1;
     while(runner){
         out << runner->data<<" ";
         count++;
         runner=runner->next;
     }   
+    out<<"<bottom> ";
 }
 
 const List & List::operator=(const List & rightHandSide){
     while(head!=nullptr){
-        remove(0);
+        remove(0);  //clean out the out list so that we don't have memory leaks.
     }
     Element *runner = rightHandSide.head;
     while(runner!=nullptr){
@@ -119,14 +103,11 @@ const List & List::operator=(const List & rightHandSide){
     }
     return *this;
 }
-List::List(const List & origList){
+List::List(const List & origList){  //copy constructor.
     head = origList.head;
     Element *runner = head;
-    while(runner->next!=nullptr){
-        if(runner==origList.head);
-        if(runner->next == nullptr){
-        }
-        else runner=runner->next;
+    while(runner->next){
+        runner=runner->next;
     };
 }
 
@@ -135,8 +116,8 @@ void List::remove(int position){
     Element *prev_runner = head;
     int temp;
     for(int link_position = 0; link_position<position; link_position++){
-        if(runner==nullptr){
-            cout<<"List is empty or index does not exist.\n";
+        if(!runner){
+            cout<<"\nList is empty or index does not exist.\n";
             return;
         }
         else{
@@ -163,9 +144,9 @@ void List::insert(DataType data){	//This puts sorted data in...
     Element *newElement = new Element(data);
     Element *runner=head;
     Element *previous=runner;
-    while(runner!=nullptr){ 
+    while(runner){ 
         if(  (runner->data) < data){  //if the next data is smaller than our newdata, keep going down the list
-            if(runner->next!=nullptr){//we have more to check.
+            if(runner->next){//we have more to check.
                 previous = runner;  //record our current runner address.
                 runner=runner->next;    //go to the next element.
             }
@@ -177,7 +158,6 @@ void List::insert(DataType data){	//This puts sorted data in...
         }
         else{ //runner value is greater than or equal to, so stick our newElement in front of it....
            newElement->next=runner;
-            //if(previous==head) //we have to set head to the beginning.
             if(runner==head)
                 {head = newElement;head->next=runner;}
             else//we have to tell the previous element where to point to.
@@ -263,13 +243,13 @@ class Stack {
     bool pop(StackElementType &item); // if empty return false; else copy top element on stack into item, remove top element, return true
     //void pop();
     void display(ostream & out) const; // display entire contents of list on one line, separate by spaces
-	void end_of_stack();
+	//void end_of_stack();
 };
 
 
 
 
-void Stack::end_of_stack(){
+/*void Stack::end_of_stack(){
 	Element* runner = myTop;
 	Element* lastNext = runner;
 	while(runner!=nullptr){
@@ -278,7 +258,7 @@ void Stack::end_of_stack(){
 	}
 	cout<<"End of list: "<<(lastNext->next)<<" !\n";
 }
-
+*/
 
 ostream & operator<<(ostream & out, const Stack & aStack){
     aStack.display(out); 
@@ -292,7 +272,6 @@ Stack::Stack(StackElementType value){
 };
 
 Stack::Stack(const Stack & origStack){ // copy constructor.
-    //cerr<<"copyconstruct\n"<<myTop;
     if (origStack.myTop==nullptr){
         myTop=nullptr;
     }
@@ -331,7 +310,6 @@ StackElementType Stack::pop(){
   };
 
 bool Stack::pop(StackElementType &item){  // if empty return false; else copy top element on stack into item, remove top element, return true
-    //display(cout);
     bool popped = false;
     if( is_empty() ) {
         popped=false;
@@ -354,7 +332,6 @@ const Stack & Stack::operator=(const Stack & rightHandSide){
     while(myTop!=nullptr){  //Deallocate all of the data BEFORE we start adding
         pop();
     };
-    
     Element *right_runner = rightHandSide.myTop; 
     Element *runner = new Element(right_runner->data, right_runner->next);
     myTop = runner;
@@ -367,9 +344,6 @@ const Stack & Stack::operator=(const Stack & rightHandSide){
 }
 
 enum operation_t {add, subtract, multiply, divide}; // create "codes" for operators
-// Warning: These "codes" for operators could get "mixed up" with operands, so be careful!
-
-
 
 void evaluate(Stack &stack) {
   // pop 3 items from stack, expected in postfix order
@@ -398,11 +372,9 @@ void evaluate(Stack &stack) {
 }
 void Stack::display(ostream & out) const{
     Element *runner = myTop;
-
+    out<<"<top> ";
     int count = 1;
     while(runner){
-        //cerr<<"@@@@@";
-        //out << "Stack Element " << count<<" "<<
         out <<runner->data<<" ";
         count++;
         if(runner->next == nullptr) break;
@@ -410,7 +382,9 @@ void Stack::display(ostream & out) const{
             runner=runner->next;
         }
     }
+    out<<"<bottom> ";
 }
+
 bool Stack::is_empty() const{
     bool is_empty;
     Element *runner = myTop;
@@ -423,9 +397,7 @@ bool Stack::is_empty() const{
 }
 
 
-
-int main(){  // main is done for you. You should not have to modify main.
-  cout<<"COSC 2436 Lab 3\n";
+int main(){  cout<<"COSC 2436 Lab 3\n";
 
   // If desired, you may add extra cout statements to better format the output.
   // While developing class List and Stack, COMMENT OUT any test code you are not ready for!
@@ -447,10 +419,7 @@ int main(){  // main is done for you. You should not have to modify main.
     listC.remove(position);
     cout<<"listC: " << listC <<endl;
   }
-	listA.end_of_list();
-	listB.end_of_list();
-	listC.end_of_list();
-	
+
   // Test class stack...
   cout<<"\nTesting class Stack\n";
   Stack stackA, stackB;
@@ -459,10 +428,7 @@ int main(){  // main is done for you. You should not have to modify main.
   cout<<"stackA: " << stackA <<endl;
   stackB=stackA; // make a complete copy
   cout<<"stackB: " << stackB <<endl;
-	stackA.end_of_stack();
-	stackB.end_of_stack();
-	//stackC.end_of_stack();
-	
+
   Stack stackC=stackB; // construct a new stack, initialize with previous stack
   stackC.push('_'); stackC.push('Z'); stackC.push('Y'); stackC.push('X');
   cout<<"stackC: " << stackC <<endl;
@@ -496,7 +462,6 @@ int main(){  // main is done for you. You should not have to modify main.
   stackD.push(divide); stackD.push(440); stackD.push(10); // 440/10
   cout<<"stackD: "<< stackD; evaluate(stackD);
   cout<<" evaluates to: " << stackD.pop() << endl; // expect 44
-//	cout<<"End of A:"<<
 
   cout<<"\nGoodbye!\n";
 }
@@ -523,6 +488,34 @@ stackD: <top> 10 440 3 <bottom> evaluates to: 44
 */
 
 /* paste your testing results here...
+
+COSC 2436 Lab 3
+Testing class List
+listA: <top> 2 3 4 6 C C O S <bottom>
+listB: <top> 2 3 4 6 C C O S <bottom>
+listC: <top> 2 3 4 6 C C O S X Y Z _ <bottom>
+listC: <top> 2 4 6 C C O S X Y Z _ <bottom>
+listC: <top> 2 4 C C O S X Y Z _ <bottom>
+listC: <top> 2 4 C O S X Y Z _ <bottom>
+
+Testing class Stack
+stackA: <top> 54 51 52 50 67 83 79 67 <bottom>
+stackB: <top> 54 51 52 50 67 83 79 67 <bottom>
+stackC: <top> 88 89 90 95 54 51 52 50 67 83 79 67 <bottom>
+Popping all of stackB: 54  51  52  50  67  83  79  67
+Popping all of stackC: 88  89  90  95  54  51  52  50  67  83  79  67
+stackD: <top> 10 1 0 <bottom>  evaluates to: 11
+stackD: <top> 22 44 1 <bottom>  evaluates to: 22
+stackD: <top> 3 11 2 <bottom>  evaluates to: 33
+stackD: <top> 10 440 3 <bottom>  evaluates to: 44
+
+Goodbye!
+
+--------------------------------
+Process exited after 2.253 seconds with return value 0
+Press any key to continue . . .
+
+
 
 */
 
