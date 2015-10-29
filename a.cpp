@@ -15,10 +15,8 @@ class List {
 	class Element {
  		public:
         DataType data;
- 		Element *next;
-
+ 		Element *next = nullptr;;
 			Element(){
-				next = nullptr;
 			}
 			Element(DataType newData, Element* newNext){
 				data = newData;
@@ -44,7 +42,29 @@ class List {
         const List & operator=(const List & rightHandSide);
         void remove(int position);
         void display(ostream & out ) const;
+        void end_of_list();
 };
+
+void List::end_of_list(){
+	Element* runner = head;
+	Element* lastNext = runner;
+	while(runner!=nullptr){
+		lastNext=runner;
+		runner=runner->next;
+	}
+	cout<<"End of list: "<<(lastNext->next)<<" !\n";
+}
+
+
+
+
+
+
+
+
+
+
+
 List::List(){
 	head = nullptr;
 }
@@ -52,12 +72,14 @@ List::List(){
 List::List(DataType val){
 	head = new Element(val);
 }
+
 List::~List(){
-    Element *currPtr = head, nextPtr;
+    Element *currPtr = head;
+	Element *nextPtr;
     while(currPtr!=0){
-        //nextPtr=currPtr->next;
-       // delete currPtr;
-        //currPtr=nextPtr;
+        nextPtr=currPtr->next;
+        delete currPtr;
+        currPtr=nextPtr;
     }
 }
 
@@ -136,12 +158,11 @@ void List::remove(int position){
     head=newElement;//
 }
 */
-void List::insert(DataType data){
+void List::insert(DataType data){	//This puts sorted data in...
 //void List::insert_in_sorted_position(DataType data){
     Element *newElement = new Element(data);
     Element *runner=head;
     Element *previous=runner;
-    //cerr<<"wantinsert_data "<<data<<endl;
     while(runner!=nullptr){ 
         if(  (runner->data) < data){  //if the next data is smaller than our newdata, keep going down the list
             if(runner->next!=nullptr){//we have more to check.
@@ -207,7 +228,7 @@ bool List::is_empty(){
 
 
 
-//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef int StackElementType;
 
 class Stack {
@@ -217,11 +238,12 @@ class Stack {
         public:
             StackElementType data;
             Element * next = nullptr;
+            Element(){};
             Element(StackElementType data){
                 this->data=data;
                 this->next=nullptr;
             };
-			Element(DataType newData, Element* newNext){
+			Element(StackElementType newData, Element* newNext){
 				data = newData;
 				next = newNext;
 			}
@@ -241,7 +263,21 @@ class Stack {
     bool pop(StackElementType &item); // if empty return false; else copy top element on stack into item, remove top element, return true
     //void pop();
     void display(ostream & out) const; // display entire contents of list on one line, separate by spaces
+	void end_of_stack();
 };
+
+
+
+
+void Stack::end_of_stack(){
+	Element* runner = myTop;
+	Element* lastNext = runner;
+	while(runner!=nullptr){
+		lastNext=runner;
+		runner=runner->next;
+	}
+	cout<<"End of list: "<<(lastNext->next)<<" !\n";
+}
 
 
 ostream & operator<<(ostream & out, const Stack & aStack){
@@ -294,7 +330,7 @@ StackElementType Stack::pop(){
     return topData;
   };
 
-bool Stack::pop(StackElementType &item){
+bool Stack::pop(StackElementType &item){  // if empty return false; else copy top element on stack into item, remove top element, return true
     //display(cout);
     bool popped = false;
     if( is_empty() ) {
@@ -311,16 +347,12 @@ bool Stack::pop(StackElementType &item){
     }
     return popped;
 }
- // if empty return false; else copy top element on stack into item, remove top element, return true
-
 
 
 
 const Stack & Stack::operator=(const Stack & rightHandSide){
-    while(myTop!=nullptr){  //Deallocate all of the data BEFORE we 
-        //cerr<<"myTopp: "<<myTop->data<<" !=null, so pop\n";
+    while(myTop!=nullptr){  //Deallocate all of the data BEFORE we start adding
         pop();
-        //display(cout);
     };
     
     Element *right_runner = rightHandSide.myTop; 
@@ -340,7 +372,6 @@ enum operation_t {add, subtract, multiply, divide}; // create "codes" for operat
 
 
 void evaluate(Stack &stack) {
-    
   // pop 3 items from stack, expected in postfix order
   // evaluate the expression, push the result. Example: 1+2 (infix) is 12+ (postfix)
   // push operation=+, push A=1, push B=2   call evaluate()
@@ -391,6 +422,8 @@ bool Stack::is_empty() const{
     return is_empty;
 }
 
+
+
 int main(){  // main is done for you. You should not have to modify main.
   cout<<"COSC 2436 Lab 3\n";
 
@@ -414,7 +447,10 @@ int main(){  // main is done for you. You should not have to modify main.
     listC.remove(position);
     cout<<"listC: " << listC <<endl;
   }
-
+	listA.end_of_list();
+	listB.end_of_list();
+	listC.end_of_list();
+	
   // Test class stack...
   cout<<"\nTesting class Stack\n";
   Stack stackA, stackB;
@@ -423,7 +459,10 @@ int main(){  // main is done for you. You should not have to modify main.
   cout<<"stackA: " << stackA <<endl;
   stackB=stackA; // make a complete copy
   cout<<"stackB: " << stackB <<endl;
-
+	stackA.end_of_stack();
+	stackB.end_of_stack();
+	//stackC.end_of_stack();
+	
   Stack stackC=stackB; // construct a new stack, initialize with previous stack
   stackC.push('_'); stackC.push('Z'); stackC.push('Y'); stackC.push('X');
   cout<<"stackC: " << stackC <<endl;
@@ -457,6 +496,7 @@ int main(){  // main is done for you. You should not have to modify main.
   stackD.push(divide); stackD.push(440); stackD.push(10); // 440/10
   cout<<"stackD: "<< stackD; evaluate(stackD);
   cout<<" evaluates to: " << stackD.pop() << endl; // expect 44
+//	cout<<"End of A:"<<
 
   cout<<"\nGoodbye!\n";
 }
