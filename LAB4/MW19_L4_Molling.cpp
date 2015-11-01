@@ -1,8 +1,11 @@
 #include <iostream>
 #include<string>
 #include<fstream>
+#include<sstream>
+
 using namespace std;
-bool testingOFF = false;
+bool testingOFF = true;
+bool DEBUG = false;
 
 /* postfix expression is received and its value is returned (unless an error
 occurred). A stack is used to store operands. 
@@ -21,6 +24,7 @@ malformed postfix expression has occurred.
 */
 
 typedef int StackElementType;
+typedef int numberType;
 
 class Stack {
   private:
@@ -56,10 +60,29 @@ class Stack {
     void display(ostream & out) const; // display entire contents of list on one line, separate by spaces
 	//void end_of_stack();
     void evaluate_postfix(string line);
+    void clear();
+    int returnSize();
 };
+int Stack::returnSize(){
+    int count = 0;
+    Element *runner = myTop;
+    while(runner){
+        count++;
+        if(runner->next){
+            runner=runner->next;   
+        }
+        else{
+            return count;
+        }
+    }
+    return count;        
+}
 
-
-
+void Stack::clear(){
+    while(!is_empty()){
+        pop();
+    }
+}
 
 /*void Stack::end_of_stack(){
 	Element* runner = myTop;
@@ -192,37 +215,57 @@ void evaluate(Stack &stack) {
   }
 }
 
-void Stack::evaluate_postfix(string line){//Stack &stack){
+void Stack::evaluate_postfix(string line){
+    stringstream ss;
+    ss<<line;
+    string phrase;
+    StackElementType myStackData;
+    StackElementType dataA=0;
+    StackElementType dataB=0;
+    char op;
+
+    //ss>>myInt;
     //if (stack.is_empty()) return; // stop right here!
+    //if(!testingOFF) cerr<<"enter post_fix evall\n";
     if(line=="")    return;
-    Stack myStack = Stack();
+    //Stack myStack = Stack();
     int result;
-    for(int i = 0; i<line.length(); i++){
-        if( (line[i]) ){ //if this char isn't a white space.
-            switch(line[i]){
-                case add: result=myStack.pop()+myStack.pop();   break;  
-                case subtract: result=myStack.pop()+myStack.pop();   break;        
-                case multiply: result=myStack.pop()+myStack.pop();   break;
-                case divide: result=myStack.pop()+myStack.pop();   break;
-                default:    push(line[i]);  break;
-            }
-            push(result);
+    while(ss>>phrase){
+        if(isdigit(phrase[0])||(phrase[0]=='+')||(phrase[0]=='-')||(phrase[0]=='*')||(phrase[0]=='/')){
+            switch(phrase[0]){
+                case '+':       if( pop(dataA) and pop(dataB)){ result=dataA+dataB; push(result);};
+                                if(DEBUG){  cerr<<"result is "<<result; }
+                                break;  
+                case '-':       if( pop(dataA) and pop(dataB)){ result=dataB-dataA; push(result);};
+                                if(DEBUG){  cerr<<"result is "<<result; }
+                                break;         
+                case '*':       if( pop(dataA) and pop(dataB)){ result=dataA*dataB; push(result);};
+                                if(DEBUG){  cerr<<"result is "<<result; }
+                                break;  
+                case '/':       if( pop(dataA) and pop(dataB)){ resul= dataB/dataA; push(result);};
+                                if(DEBUG){  cerr<<"result is "<<result; }
+                                break;  
+                default:        push( stoi(phrase) );  //if(DEBUG){cerr<<"pushing "<< stoi(phrase);display(cout); } 
+                            break;
+            };
         }
-    }   
+        //else clear();
+    };
+    //cout<<"See Brendan, Stack data" ; display(cout);
 }
 void Stack::display(ostream & out) const{
-    Element *runner = myTop;
-    out<<"<top> ";
-    int count = 1;
+    Element *runner=myTop;
+    //out<<"<top> ";
+    int count=1;
     while(runner){
-        out <<runner->data<<" ";
+        out<<runner->data<<" ";
         count++;
         if(runner->next == nullptr) break;
         else{
             runner=runner->next;
         }
     }
-    out<<"<bottom> ";
+    //out<<"<bottom> ";
 }
 
 bool Stack::is_empty() const{
@@ -236,61 +279,79 @@ bool Stack::is_empty() const{
 
 
 int main(){
+    cout<<"Start...";
     char input;
     string postInputStr;
     Stack myStack;
-    /*cout<<"Welcome to the postfix expression evaluator! You may:"
-    "enter a single expression, enter a filename with many expressions 
+    cout<<"Welcome to the postfix expression evaluator! You may:"
+    "enter a single expression, enter a filename with many expressions "
     "(one per line), or quit at any time. Please begin.\n";
-    
-*/
+   
     while(input!='q'){
-        cout<<"e)xpression; f)ilename; q)uit. Your option? \n";
+        cout<<"\ne)xpression; f)ilename; q)uit. Your option? \n";
         cin>>input;
+        //cin.ignore();
         if(input=='f'){
+            string fileDefaultName="postfix_test_data.txt";
             string fileName;
+            ifstream inFile;
             if(testingOFF){ 
                 cout<<"Enter filename\n";
-                cin>>fileName;
+                //cin>>fileName;
+                getline(cin,fileName);
                 unsigned int txtPos = fileName.find("txt");
                 if( txtPos>1000){
-                    string suffix = "txt";
+                    string suffix = ".txt";
                     fileName.append(suffix);
                 }
-            }
-            else{
-                fileName="postfix_test_data.txt";
-            }
-                     
-            ifstream inFile;
-            inFile.open(fileName);
-            if(inFile.fail()){   
-                cerr<<"Failed to open file. \n";
-            }
-            else{
-                while( !(inFile.eof())){
-                    getline(inFile,postInputStr);
-                    //make line into stack. Check if valid postfix now or at evaluation? Let's try
-                    //at evaulation.
-                    //Stack newStack = Stack(postInputStr, postInputStr.length());
-                    //cout <<"evaluates to: "<<evaluate(newStack);
-                    myStack.evaluate_postfix(postInputStr);
-                    cout<<"\n"<<postInputStr;
-                    cout<<" evaluates to "<<myStack<<"\n";
+                inFile.open(fileName);
+                if(inFile.fail()){
+                    cout<<"No file by that name could be open.\nUsing default name "<<fileDefaultName<<"\n";
+                    fileName="postfix_test_data.txt";
+                    inFile.open(fileName);
+                    if(inFile.fail()){                       
+                        cerr<<"Failed to open file. \n";
+
+                    }
                 }
+            } 
+            else{
+                inFile.open(fileName);
+            }                       
+            while( !(inFile.eof())){
+                getline(inFile,postInputStr);
+                myStack.evaluate_postfix(postInputStr);
+                if( myStack.returnSize()==1){ //if the expression evaluates properly, otherwise skip it.
+                    cout<<postInputStr;
+                    cout<<" evaluates to ";
+                    myStack.display(cout);
+                    cout<<"\n";
+                    //cout<<"\n MyStack size "<<myStack.returnSize();
+                    
+                }
+                myStack.clear();
             }
         }
         else if(input=='e'){
-            if(testingOFF) cin>>input;
-            else input = 'e';
+            cin.ignore();
+            //if(testingOFF) cin>>input;
+            //else input = 'e';
+            //cout << "My input <" << input << ">" << endl;
+            cout<<"Enter postfix/RPN expression: ";
             
-            cout<<"Enter postfix expression: ";
-            if(testingOFF)  cin>>postInputStr;
-            else postInputStr="20 30 40 + *";
+            if(testingOFF) getline(cin,postInputStr); 
+            else{ postInputStr="20 30 40 + *"; cerr<<"postInputSt " <<postInputStr<<"\n"; }
+            myStack.evaluate_postfix(postInputStr);
+            if( myStack.returnSize()==1){ //if the expression evaluates properly.
+                        cout<<postInputStr;
+                        cout<<" evaluates to ";
+                        myStack.display(cout);
+                        cout<<"\n";
+                        //cout<<"\n MyStack size "<<myStack.returnSize();
+                        
+            }
+            myStack.clear();
         }
-        else if(input=='q'){       
-            break;
-        };
             
     //cout<<"The value of the expression is: "<<evaluate(postInputStr)<<endl;
     
