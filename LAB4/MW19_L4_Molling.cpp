@@ -59,7 +59,7 @@ class Stack {
     //void pop();
     void display(ostream & out) const; // display entire contents of list on one line, separate by spaces
 	//void end_of_stack();
-    void evaluate_postfix(string line);
+    bool evaluate_postfix(string line);
     void clear();
     int returnSize();
 };
@@ -215,7 +215,17 @@ void evaluate(Stack &stack) {
   }
 }
 
-void Stack::evaluate_postfix(string line){
+bool isAllDigits(string str){
+    for(int i = 0; i < str.length(); i++){
+        if(!isdigit(str[i])){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Stack::evaluate_postfix(string line){
+    bool validExpression = true;
     stringstream ss;
     ss<<line;
     string phrase;
@@ -227,31 +237,45 @@ void Stack::evaluate_postfix(string line){
     //ss>>myInt;
     //if (stack.is_empty()) return; // stop right here!
     //if(!testingOFF) cerr<<"enter post_fix evall\n";
-    if(line=="")    return;
+    if(line=="")    return false;
     //Stack myStack = Stack();
     int result;
     while(ss>>phrase){
-        if(isdigit(phrase[0])||(phrase[0]=='+')||(phrase[0]=='-')||(phrase[0]=='*')||(phrase[0]=='/')){
+        //cerr<<"phrase is "<<phrase<<"\n";
+        //isphrasealldigits or one of the fours symbols?
+        if( (isAllDigits(phrase))|| (phrase[0]=='+') ||( phrase[0]=='-') ||(phrase[0]=='*')
+            ||(phrase[0]=='/') && (phrase.length()==1)){
+        //if(isdigit(phrase[0])||(phrase[0]=='+')||(phrase[0]=='-')||(phrase[0]=='*')||(phrase[0]=='/')){
             switch(phrase[0]){
-                case '+':       if( pop(dataA) and pop(dataB)){ result=dataA+dataB; push(result);};
+                case '+':       if( pop(dataA) and pop(dataB)){ result=dataA+dataB; push(result);}
+                                else return false;
                                 if(DEBUG){  cerr<<"result is "<<result; }
                                 break;  
-                case '-':       if( pop(dataA) and pop(dataB)){ result=dataB-dataA; push(result);};
+                case '-':       if( pop(dataA) and pop(dataB)){ result=dataB-dataA; push(result);}
+                                else return false;
                                 if(DEBUG){  cerr<<"result is "<<result; }
                                 break;         
-                case '*':       if( pop(dataA) and pop(dataB)){ result=dataA*dataB; push(result);};
+                case '*':       if( pop(dataA) and pop(dataB)){ result=dataA*dataB; push(result);}
+                                else return false;
                                 if(DEBUG){  cerr<<"result is "<<result; }
                                 break;  
-                case '/':       if( pop(dataA) and pop(dataB)){ resul= dataB/dataA; push(result);};
+                case '/':       if( pop(dataA) and pop(dataB)){ result= dataB/dataA; push(result);}
+                                else return false;
                                 if(DEBUG){  cerr<<"result is "<<result; }
                                 break;  
-                default:        push( stoi(phrase) );  //if(DEBUG){cerr<<"pushing "<< stoi(phrase);display(cout); } 
-                            break;
+                default:        push( stoi(phrase) );  if(false){cerr<<"pushing "<< stoi(phrase);}//display(cout); } 
+                                break;
             };
         }
-        //else clear();
+        else{
+            validExpression=false;
+            //return validExpression;
+        };
     };
-    //cout<<"See Brendan, Stack data" ; display(cout);
+    if(returnSize()!=1){
+        validExpression=false;
+    };
+    return validExpression;
 }
 void Stack::display(ostream & out) const{
     Element *runner=myTop;
@@ -279,18 +303,18 @@ bool Stack::is_empty() const{
 
 
 int main(){
-    cout<<"Start...";
     char input;
+    string lineIn;
     string postInputStr;
     Stack myStack;
-    cout<<"Welcome to the postfix expression evaluator! You may:"
-    "enter a single expression, enter a filename with many expressions "
+    cout<<"Welcome to the postfix expression evaluator! You may:\n"
+    "enter a single expression, enter a filename with many expressions \n"
     "(one per line), or quit at any time. Please begin.\n";
    
     while(input!='q'){
         cout<<"\ne)xpression; f)ilename; q)uit. Your option? \n";
-        cin>>input;
-        //cin.ignore();
+        getline(cin, lineIn);
+        input=lineIn[0];
         if(input=='f'){
             string fileDefaultName="postfix_test_data.txt";
             string fileName;
@@ -299,6 +323,7 @@ int main(){
                 cout<<"Enter filename\n";
                 //cin>>fileName;
                 getline(cin,fileName);
+                cout<<"\n";
                 unsigned int txtPos = fileName.find("txt");
                 if( txtPos>1000){
                     string suffix = ".txt";
@@ -306,7 +331,7 @@ int main(){
                 }
                 inFile.open(fileName);
                 if(inFile.fail()){
-                    cout<<"No file by that name could be open.\nUsing default name "<<fileDefaultName<<"\n";
+                    cout<<"No file by that name could be open.\nUsing default name "<<fileDefaultName<<"\n\n";
                     fileName="postfix_test_data.txt";
                     inFile.open(fileName);
                     if(inFile.fail()){                       
@@ -320,8 +345,7 @@ int main(){
             }                       
             while( !(inFile.eof())){
                 getline(inFile,postInputStr);
-                myStack.evaluate_postfix(postInputStr);
-                if( myStack.returnSize()==1){ //if the expression evaluates properly, otherwise skip it.
+                if( myStack.evaluate_postfix(postInputStr) ){ //if the expression evaluates properly, otherwise skip it.
                     cout<<postInputStr;
                     cout<<" evaluates to ";
                     myStack.display(cout);
@@ -333,22 +357,23 @@ int main(){
             }
         }
         else if(input=='e'){
-            cin.ignore();
-            //if(testingOFF) cin>>input;
-            //else input = 'e';
-            //cout << "My input <" << input << ">" << endl;
             cout<<"Enter postfix/RPN expression: ";
+            if(testingOFF){
+                getline(cin,postInputStr); 
+            }
+            else{ 
+                postInputStr="20 30 40 + *"; cerr<<"postInputSt " <<postInputStr<<"\n"; 
+            }
             
-            if(testingOFF) getline(cin,postInputStr); 
-            else{ postInputStr="20 30 40 + *"; cerr<<"postInputSt " <<postInputStr<<"\n"; }
-            myStack.evaluate_postfix(postInputStr);
-            if( myStack.returnSize()==1){ //if the expression evaluates properly.
-                        cout<<postInputStr;
-                        cout<<" evaluates to ";
-                        myStack.display(cout);
-                        cout<<"\n";
-                        //cout<<"\n MyStack size "<<myStack.returnSize();
-                        
+            if( myStack.evaluate_postfix(postInputStr) ){ //if the expression evaluates properly.
+                cout<<postInputStr;
+                cout<<" evaluates to ";
+                myStack.display(cout);
+                cout<<"\n";
+                //cout<<"\n MyStack size "<<myStack.returnSize();
+            }
+            else{
+                cout<<"Expression not valid.\n";                        
             }
             myStack.clear();
         }
@@ -356,4 +381,5 @@ int main(){
     //cout<<"The value of the expression is: "<<evaluate(postInputStr)<<endl;
     
     }
+    
 }
