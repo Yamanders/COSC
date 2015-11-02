@@ -1,13 +1,23 @@
+/* 
+AUTHOR: AMANDA MOLLING A17020308
+COURSE: COSC 2326.001 FALL 2015 MW19 ; INSTRUCTOR: THAYER
+LAB 4: PURPOSE: EVALUATE  POSTFIX EXPRESSIONS USING STL STACK AND 
+        USER DEFINED STACK
+*/
+
+
 #include <iostream>
 #include<string>
 #include<fstream>
 #include<sstream>
+#include<stack>
 
 using namespace std;
-bool testingOFF = true;
-bool DEBUG = false;
+bool testingOFF = true; 
+bool DEBUG = !testingOFF;   // I am very lazy....
 
-/* postfix expression is received and its value is returned (unless an error
+/* FROM textbook:
+postfix expression is received and its value is returned (unless an error
 occurred). A stack is used to store operands. 
 1. Initialize an empty stack.
 2. Repeat the following until the end of the expression is encountered:
@@ -24,7 +34,6 @@ malformed postfix expression has occurred.
 */
 
 typedef int StackElementType;
-typedef int numberType;
 
 class Stack {
   private:
@@ -215,7 +224,7 @@ void evaluate(Stack &stack) {
   }
 }
 
-bool isAllDigits(string str){
+bool isAllDigits(string str){   //check if entire string is digits (I am checking if this is a valid number)
     for(int i = 0; i < str.length(); i++){
         if(!isdigit(str[i])){
             return false;
@@ -225,61 +234,74 @@ bool isAllDigits(string str){
 }
 
 bool Stack::evaluate_postfix(string line){
-    bool validExpression = true;
-    stringstream ss;
+    if(line==""){//Stop right there.
+        return false; 
+    }
+    bool validExpression = true; //Can I get a result?
+    stringstream ss;//crunch the spaces.
     ss<<line;
-    string phrase;
-    StackElementType myStackData;
-    StackElementType dataA=0;
+    string phrase;  //this is a part of line ie. 9 or 57 or +
+    StackElementType dataA=0;   //temp values for calculating.
     StackElementType dataB=0;
-    char op;
-
-    //ss>>myInt;
-    //if (stack.is_empty()) return; // stop right here!
-    //if(!testingOFF) cerr<<"enter post_fix evall\n";
-    if(line=="")    return false;
-    //Stack myStack = Stack();
     int result;
     while(ss>>phrase){
-        //cerr<<"phrase is "<<phrase<<"\n";
-        //isphrasealldigits or one of the fours symbols?
+        //is phrase all digits or one of the fours symbols, with length==1?
         if( (isAllDigits(phrase))|| (phrase[0]=='+') ||( phrase[0]=='-') ||(phrase[0]=='*')
             ||(phrase[0]=='/') && (phrase.length()==1)){
-        //if(isdigit(phrase[0])||(phrase[0]=='+')||(phrase[0]=='-')||(phrase[0]=='*')||(phrase[0]=='/')){
             switch(phrase[0]){
-                case '+':       if( pop(dataA) and pop(dataB)){ result=dataA+dataB; push(result);}
-                                else return false;
+                case '+':       if( pop(dataA) and pop(dataB)){ 
+                                    result=dataA+dataB; push(result);
+                                }
+                                else{
+                                    return false;
+                                }
                                 if(DEBUG){  cerr<<"result is "<<result; }
                                 break;  
-                case '-':       if( pop(dataA) and pop(dataB)){ result=dataB-dataA; push(result);}
-                                else return false;
+                case '-':       if( pop(dataA) and pop(dataB)){ 
+                                    result=dataB-dataA; 
+                                    push(result);
+                                }
+                                else{   
+                                    return false;
+                                }
                                 if(DEBUG){  cerr<<"result is "<<result; }
                                 break;         
-                case '*':       if( pop(dataA) and pop(dataB)){ result=dataA*dataB; push(result);}
-                                else return false;
+                case '*':       if( pop(dataA) and pop(dataB)){ 
+                                    result=dataA*dataB; push(result);
+                                }
+                                else{
+                                    return false;
+                                }
                                 if(DEBUG){  cerr<<"result is "<<result; }
                                 break;  
-                case '/':       if( pop(dataA) and pop(dataB)){ result= dataB/dataA; push(result);}
+                case '/':       if( pop(dataA) and pop(dataB)){ 
+                                    result= dataB/dataA; push(result);
+                                }
                                 else return false;
-                                if(DEBUG){  cerr<<"result is "<<result; }
+                                if(DEBUG){ 
+                                    cerr<<"result is "<<result; 
+                                }
                                 break;  
-                default:        push( stoi(phrase) );  if(false){cerr<<"pushing "<< stoi(phrase);}//display(cout); } 
+                default:        push( stoi(phrase) );  
+                                if(DEBUG){
+                                    cerr<<"pushing "<< stoi(phrase);
+                                }
                                 break;
             };
         }
         else{
-            validExpression=false;
-            //return validExpression;
+            validExpression=false;  //we encountered some sort of symbol that we didn't like.(=, &, etc)
+            return validExpression;
         };
     };
-    if(returnSize()!=1){
+    if(returnSize()!=1){    //we didn't use all of the numbers pushed on the stack (num. operands> num.operators - 1)
         validExpression=false;
     };
     return validExpression;
 }
 void Stack::display(ostream & out) const{
     Element *runner=myTop;
-    //out<<"<top> ";
+    //out<<"<top> ";    //Didn't need to specify top and bottom.
     int count=1;
     while(runner){
         out<<runner->data<<" ";
@@ -300,6 +322,67 @@ bool Stack::is_empty() const{
         return false;
 }
 
+//evaluate postFix using STL.
+int eval_postfix(string line){
+    if(line==""){   
+        throw "Empty line";
+    };
+    stack<StackElementType> myStack;
+    StackElementType dataA;
+    StackElementType dataB;
+    int result; 
+    stringstream ss;
+    ss<<line;
+    string phrase;
+    while(ss>>phrase){
+        if(DEBUG){  cout<<"phrase is "<<phrase<<endl; }
+        if( isAllDigits(phrase)){
+            myStack.push( stoi(phrase));
+        }
+        else if( (phrase.length()==1) && ( (phrase[0] == '+')||(phrase[0]=='-')||(phrase[0]=='*')||(phrase[0]=='/') ) ){
+            switch(phrase[0]){
+                case '+':       //if( dataA = myStack.top() and (myStack.pop(); dataB=myStack.top()) ) { result=dataA+dataB; myStack.push(result);}
+                                if( (myStack.size()>1) ){
+                                    dataA = myStack.top(); myStack.pop(); dataB=myStack.top(); myStack.pop(); 
+                                    result = dataA+dataB; myStack.push(result);
+                                }
+                                else throw "Invalid";
+                                if(DEBUG){  cerr<<"result is "<<result; }
+                                break;  
+                case '-':       //if( myStack.pop(dataA) and pop(dataB)){ result=dataB-dataA; push(result);}
+                                if(myStack.size()>1){
+                                    dataA = myStack.top(); myStack.pop(); dataB=myStack.top(); myStack.pop(); 
+                                    result = dataB-dataA; myStack.push(result);
+                                }
+                                else throw "Invalid";
+                                if(DEBUG){  cerr<<"result is "<<result; }
+                                break;         
+                case '*':       //if( pop(dataA) and pop(dataB)){ result=dataA*dataB; push(result);}
+                                if(myStack.size()>1){
+                                    dataA = myStack.top(); myStack.pop(); dataB=myStack.top(); myStack.pop(); 
+                                    result = dataA*dataB; myStack.push(result);
+                                }
+                                else throw "Invalid";
+                                if(DEBUG){  cerr<<"result is "<<result; }
+                                break; 
+                case '/':       //if( pop(dataA) and pop(dataB)){ result= dataB/dataA; push(result);}
+                                if(myStack.size()>1){
+                                    dataA = myStack.top(); myStack.pop(); dataB=myStack.top(); myStack.pop(); 
+                                    result = dataB/dataA; myStack.push(result);
+                                }
+                                else throw "Invalid";
+                                if(DEBUG){  cerr<<"result is "<<result; }
+                                break;         
+            }
+        }
+        else{   //encountered some sort of other char ($,^, =, etc)
+            throw "Expression not valid\n";
+        }
+    }
+    if(DEBUG){cerr<<"returning.\n";}    //what's on the stack?
+    return myStack.top();
+}
+
 
 
 int main(){
@@ -312,36 +395,35 @@ int main(){
     "(one per line), or quit at any time. Please begin.\n";
    
     while(input!='q'){
-        cout<<"\ne)xpression; f)ilename; q)uit. Your option? \n";
+        cout<<"\ne)xpression; f)ilename; s)TL implementation(file) q)uit. Your option? \n";
         getline(cin, lineIn);
         input=lineIn[0];
         if(input=='f'){
-            string fileDefaultName="postfix_test_data.txt";
+            string fileDefaultName="postfix_test_data.txt";// just in case your filename isn't valid.
             string fileName;
             ifstream inFile;
             if(testingOFF){ 
                 cout<<"Enter filename\n";
-                //cin>>fileName;
                 getline(cin,fileName);
                 cout<<"\n";
-                unsigned int txtPos = fileName.find("txt");
-                if( txtPos>1000){
+                unsigned int txtPos = fileName.find(".txt");//index of .txt
+                if( txtPos>1000){//not found.
                     string suffix = ".txt";
-                    fileName.append(suffix);
+                    fileName.append(suffix);//append
                 }
                 inFile.open(fileName);
                 if(inFile.fail()){
                     cout<<"No file by that name could be open.\nUsing default name "<<fileDefaultName<<"\n\n";
                     fileName="postfix_test_data.txt";
                     inFile.open(fileName);
-                    if(inFile.fail()){                       
+                    if(inFile.fail()){   //Default couldn't be opened either.                    
                         cerr<<"Failed to open file. \n";
 
                     }
                 }
             } 
             else{
-                inFile.open(fileName);
+                inFile.open(fileDefaultName);  //if testing, just use default File name.
             }                       
             while( !(inFile.eof())){
                 getline(inFile,postInputStr);
@@ -377,9 +459,125 @@ int main(){
             }
             myStack.clear();
         }
-            
-    //cout<<"The value of the expression is: "<<evaluate(postInputStr)<<endl;
+        else if(input=='s'){
+            stack<StackElementType> mySTLstack;
+            string fileDefaultName="postfix_test_data.txt";
+            string fileName;
+            ifstream inFile;
+            if(testingOFF){ 
+                cout<<"Enter filename\n";
+                getline(cin,fileName);
+                cout<<"\n";
+                unsigned int txtPos = fileName.find("txt");
+                if( txtPos>1000){
+                    string suffix = ".txt";
+                    fileName.append(suffix);
+                }
+                inFile.open(fileName);
+                if(inFile.fail()){
+                    cout<<"No file by that name could be open.\nUsing default name "<<fileDefaultName<<"\n\n";
+                    fileName="postfix_test_data.txt";
+                    inFile.open(fileName);
+                    if(inFile.fail()){                       
+                        cerr<<"Failed to open file. \n";
+
+                    }
+                }
+            } 
+            else{
+                inFile.open(fileName);
+            }                       
+            while( !(inFile.eof())){
+                getline(inFile,postInputStr);
+                
+                try { //learned how to do this! :)
+                    int result = eval_postfix(postInputStr);
+                    cout<<postInputStr;
+                    cout<<" evaluates to "<<result;
+                    //mySTLstack.display(cout);
+                    cout<<"\n";
+                    //cout<<"\n MyStack size "<<myStack.returnSize();
+                } 
+                catch(...){
+                    //directions unclear as to whether to ignore an invalid line or to print it, this does work though.
+                   // cout<<"Not a valid expression.\n";
+                }; 
+
+            }
+        }            
     
     }
     
 }
+
+/*output
+
+Welcome to the postfix expression evaluator! You may:
+enter a single expression, enter a filename with many expressions
+(one per line), or quit at any time. Please begin.
+
+e)xpression; f)ilename; s)TL implementation(file) q)uit. Your option?
+s
+Enter filename
+
+
+No file by that name could be open.
+Using default name postfix_test_data.txt
+
+9 2 1 + / 4 * evaluates to 12
+2 3 + evaluates to 5
+20 30 40 + * evaluates to 1400
+5 3 + 2 /  evaluates to 4
+123 evaluates to 123
+80 9 + evaluates to 89
+1000 200 30 4 + + + evaluates to 1234
+6 4 2 1 * / * evaluates to 12
+3 1 * 8 + 2 * 11 / evaluates to 2
+8 5 3 + 2 / evaluates to 4
+1000 200 30 4 - - -  evaluates to 826
+10 20 30 40 evaluates to 40
+1 2 3 4 + + + evaluates to 10
+
+e)xpression; f)ilename; s)TL implementation(file) q)uit. Your option?
+f
+Enter filename
+
+
+No file by that name could be open.
+Using default name postfix_test_data.txt
+
+9 2 1 + / 4 * evaluates to 12
+2 3 + evaluates to 5
+20 30 40 + * evaluates to 1400
+5 3 + 2 /  evaluates to 4
+123 evaluates to 123
+80 9 + evaluates to 89
+1000 200 30 4 + + + evaluates to 1234
+6 4 2 1 * / * evaluates to 12
+3 1 * 8 + 2 * 11 / evaluates to 2
+1000 200 30 4 - - -  evaluates to 826
+1 2 3 4 + + + evaluates to 10
+
+e)xpression; f)ilename; s)TL implementation(file) q)uit. Your option?
+e
+Enter postfix/RPN expression: 10 20 +
+10 20 + evaluates to 30
+
+e)xpression; f)ilename; s)TL implementation(file) q)uit. Your option?
+e
+Enter postfix/RPN expression: 10 =
+Expression not valid.
+
+e)xpression; f)ilename; s)TL implementation(file) q)uit. Your option?
+10 20 30
+
+e)xpression; f)ilename; s)TL implementation(file) q)uit. Your option?
+e
+Enter postfix/RPN expression: 10 20 30
+Expression not valid.
+
+e)xpression; f)ilename; s)TL implementation(file) q)uit. Your option?
+q
+
+
+*/
